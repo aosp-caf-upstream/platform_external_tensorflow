@@ -21,6 +21,7 @@ from collections import defaultdict
 import sys
 
 import numpy as np
+from tensorflow.python.util.tf_export import tf_export
 
 
 try:
@@ -29,6 +30,7 @@ except ImportError:
   h5py = None
 
 
+@tf_export('keras.utils.HDF5Matrix')
 class HDF5Matrix(object):
   """Representation of HDF5 dataset to be used instead of a Numpy array.
 
@@ -78,7 +80,7 @@ class HDF5Matrix(object):
   def __len__(self):
     return self.end - self.start
 
-  def  __del__(self):
+  def __del__(self):
     self._f.close()
 
   def __getitem__(self, key):

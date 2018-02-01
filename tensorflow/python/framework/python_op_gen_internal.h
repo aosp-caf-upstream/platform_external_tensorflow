@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
 
-#ifndef THIRD_PARTY_TENSORFLOW_PYTHON_FRAMEWORK_PYTHON_OP_GEN_INTERNAL_H_
-#define THIRD_PARTY_TENSORFLOW_PYTHON_FRAMEWORK_PYTHON_OP_GEN_INTERNAL_H_
+#ifndef TENSORFLOW_PYTHON_FRAMEWORK_PYTHON_OP_GEN_INTERNAL_H_
+#define TENSORFLOW_PYTHON_FRAMEWORK_PYTHON_OP_GEN_INTERNAL_H_
 
 #include <unordered_map>
 
@@ -40,6 +40,28 @@ string AttrValueToPython(const string& type, const AttrValue& value,
 void GenerateLowerCaseOpName(const string& str, string* result);
 
 string DataTypeToPython(DataType dtype, const string& dtype_module);
+
+// Names that corresponds to a single input parameter.
+class ParamNames {
+ public:
+  // Create param based on Arg.
+  ParamNames(const string& name, const string& rename_to) : name_(name) {
+    rename_to_ = AvoidPythonReserved(rename_to);
+  }
+
+  // Get original parameter name.
+  string GetName() const { return name_; }
+
+  // Get the name to rename the parameter to. Note that AvoidPythonReserved
+  // has already been applied.
+  string GetRenameTo() const { return rename_to_; }
+
+ private:
+  // Original parameter name.
+  string name_;
+  // API name for this parameter.
+  string rename_to_;
+};
 
 class GenPythonOp {
  public:
@@ -84,10 +106,10 @@ class GenPythonOp {
 
   // All parameters, including inputs & non-inferred attrs, required and those
   // with defaults, except "name"
-  std::vector<string> param_names_;
+  std::vector<ParamNames> param_names_;
 };
 
 }  // namespace python_op_gen_internal
 }  // namespace tensorflow
 
-#endif  // THIRD_PARTY_TENSORFLOW_PYTHON_FRAMEWORK_PYTHON_OP_GEN_INTERNAL_H_
+#endif  // TENSORFLOW_PYTHON_FRAMEWORK_PYTHON_OP_GEN_INTERNAL_H_
