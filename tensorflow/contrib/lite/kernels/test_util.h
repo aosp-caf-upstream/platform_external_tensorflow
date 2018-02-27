@@ -12,8 +12,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 ==============================================================================*/
-#ifndef THIRD_PARTY_TENSORFLOW_CONTRIB_LITE_KERNELS_TEST_UTIL_H_
-#define THIRD_PARTY_TENSORFLOW_CONTRIB_LITE_KERNELS_TEST_UTIL_H_
+#ifndef TENSORFLOW_CONTRIB_LITE_KERNELS_TEST_UTIL_H_
+#define TENSORFLOW_CONTRIB_LITE_KERNELS_TEST_UTIL_H_
 
 #include <vector>
 
@@ -24,15 +24,10 @@ limitations under the License.
 #include "tensorflow/contrib/lite/kernels/register.h"
 #include "tensorflow/contrib/lite/model.h"
 #include "tensorflow/contrib/lite/string_util.h"
+#include "tensorflow/contrib/lite/testing/util.h"
 #include "tensorflow/core/platform/logging.h"
 
 namespace tflite {
-
-inline void LogToStderr() {
-#ifdef PLATFORM_GOOGLE
-  FLAGS_logtostderr = true;
-#endif
-}
 
 // A gmock matcher that check that elements of a float vector match to a given
 // tolerance.
@@ -102,6 +97,10 @@ class SingleOpModel {
   // Add a TensorType input tensor and return its index.
   int AddInput(TensorType type) { return AddInput(TensorData{type}); }
   int AddInput(const TensorData& t);
+
+  // Add a Tensor containing const data and return the tensor id.
+  int AddConstInput(TensorType type, std::initializer_list<int> data,
+                    std::initializer_list<int> shape);
 
   // Add a null input tensor (optional input) and return kOptionalTensor.
   int AddNullInput();
@@ -186,7 +185,7 @@ class SingleOpModel {
   std::unique_ptr<tflite::Interpreter> interpreter_;
 
  private:
-  int AddTensor(TensorData t);
+  int AddTensor(TensorData t, std::initializer_list<int> data);
 
   std::map<int, TensorData> tensor_data_;
   std::vector<int32_t> inputs_;
@@ -194,9 +193,13 @@ class SingleOpModel {
   std::vector<flatbuffers::Offset<Tensor>> tensors_;
   std::vector<flatbuffers::Offset<OperatorCode>> opcodes_;
   std::vector<flatbuffers::Offset<Operator>> operators_;
+  std::vector<flatbuffers::Offset<Buffer>> buffers_;
   std::map<string, std::function<TfLiteRegistration*()>> custom_registrations_;
 };
 
+// Strings have a special implementation that is in test_util.cc
+template <>
+std::vector<string> SingleOpModel::ExtractVector(int index);
 }  // namespace tflite
 
-#endif  // THIRD_PARTY_TENSORFLOW_CONTRIB_LITE_KERNELS_TEST_UTIL_H_
+#endif  // TENSORFLOW_CONTRIB_LITE_KERNELS_TEST_UTIL_H_
